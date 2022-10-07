@@ -1,0 +1,8 @@
+
+
+POST http://localhost:3000/adduser?firstName=somename&lastName=lastname&email=email&age=22 HTTP/1.1
+Content-Type: application/json
+
+{
+    "firstName":"fname"
+}
