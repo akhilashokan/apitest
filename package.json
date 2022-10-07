@@ -1,7 +1,7 @@
 {
   "name": "apitest",
   "version": "1.0.0",
-  "description": "",
+  "description": "Test api build for Innovation Incubator",
   "main": "index.js",
   "scripts": {
     "nodemon": "nodemon server.js"
