@@ -1,12 +1,14 @@
 const express = require("express")
 const router = express.Router()
 const sql = require('mysql')
+var bodyParser = require('body-parser')
+var jsonParser = bodyParser.json()
 
+router.use(express.urlencoded({ extended: true }));
 
-router.post("/addUser", (req, res) => {
-    const { firstName, lastName, email, age } = req.query
-
-    if (firstName !== '' && email !== '' && lastName !== '' && age !== '') {
+router.post("/addUser", jsonParser, (req, res) => {
+    const { firstName, lastName, email, age } = req.body
+    if (firstName != undefined && email != undefined && lastName != undefined && age !== undefined) {
         let con = sql.createConnection({
             host: "localhost",
             database: "testdb",
