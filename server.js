@@ -9,21 +9,28 @@ app.get("/", (req, res) => {
 
 app.post("/addUser", (req, res) => {
     const { firstName, lastName, email, age } = req.query
-    if (firstName !== undefined && email !== undefined) {
-        let newUser = {
-            "First Name": firstName,
-            "last Name": firstName,
-            "Email": email,
-            "Age": age
-        }
+
+    if (firstName !== '' && email !== '' && lastName !== '' && age !== '') {
         let con = sql.createConnection({
             host: "localhost",
+            database: "testdb",
             user: 'root',
             password: ''
         })
+        var query = "INSERT INTO `user`(`firstName`, `lastName`, `email`, `age`) VALUES (" + `"${firstName}","${lastName}","${email}","${age}") `
+        con.connect((err) => {
+            if (err) throw err
+            con.query(query, (err, result) => {
+                if (err) {
+                    res.send("Failed to add user")
+                    throw err
 
+                }
+                res.status(200)
+                res.send("new user added")
+            })
+        })
 
-        // res.send(newUser)
 
     } else {
         res.send('Failed to add user')
