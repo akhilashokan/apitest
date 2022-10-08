@@ -1,13 +1,13 @@
 {
   "name": "apitest",
   "version": "1.0.0",
-  "description": "Test api build for Innovation Incubator",
-  "main": "index.js",
+  "description": "Test api build for Innovation Incubator Advisory Pvt Ltd",
+  "main": "server.js",
   "scripts": {
     "nodemon": "nodemon server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Akhil Ashokan",
   "license": "ISC",
   "dependencies": {
     "amqplib": "^0.10.3",
