@@ -1,9 +1,9 @@
 var amqp = require('amqplib/callback_api');
 
 const express = require("express")
-require('dotenv/config');
+require('dotenv').config();
 
-const PORT = 3000
+const PORT = process.env.PORT || 3000
 const app = express()
 
 const user = require("./routes/user")
@@ -16,6 +16,6 @@ app.get("/", (req, res) => {
     res.send("hello there")
 })
 
-app.listen(process.env.PORT, () => {
-    console.log('running at port', process.env.PORT);
+app.listen(PORT, () => {
+    console.log('running at port', PORT);
 })
