@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const sql = require('mysql')
+const sql = require('mysql2')
 var bodyParser = require('body-parser')
 var jsonParser = bodyParser.json()
 
@@ -15,7 +15,7 @@ router.post("/addUser", jsonParser, (req, res) => {
             user: 'root',
             password: ''
         })
-        var query = "INSERT INTO `user`(`firstName`, `lastName`, `email`, `age`) VALUES (" + `"${firstName}","${lastName}","${email}","${age}") `
+        var query = "INSERT INTO `users`(`firstName`, `lastName`, `email`, `age`) VALUES (" + `"${firstName}","${lastName}","${email}","${age}") `
         con.connect((err) => {
             if (err) throw err
             con.query(query, (err, result) => {
@@ -27,12 +27,9 @@ router.post("/addUser", jsonParser, (req, res) => {
                 res.send("new user added")
             })
         })
-
-
     } else {
         res.send('Failed to add user')
     }
-
 })
 
 module.exports = router

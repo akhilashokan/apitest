@@ -3,7 +3,7 @@ const { parse } = require("csv-parse");
 const nodemailer = require('nodemailer')
 const express = require("express")
 const router = express.Router()
-const sql = require('mysql')
+const sql = require('mysql2/promise')
 const fs = require("fs");
 const { dirname } = require('path');
 const appDir = dirname(require.main.filename);
@@ -24,7 +24,8 @@ router.post("/newsletter", (req, res) => {
                 let email = row[0]
                 let newsletterContent = row[1]
                 let newsletterName = row[2]
-                check_user_exists(email, newsletterContent, newsletterName)
+                let found = await check_user_exists(email)
+                appendAndSend(found, newsletterContent, newsletterName)
             })
 
     })
@@ -32,41 +33,40 @@ router.post("/newsletter", (req, res) => {
 
 module.exports = router
 
-function check_user_exists(email, content, name) {
-    let con = sql.createConnection({
+async function check_user_exists(email) {
+    let con = await sql.createConnection({
         host: "localhost",
         database: "testdb",
         user: 'root',
         password: ''
     })
-    var query = 'SELECT * FROM `user` WHERE `email`="' + email + '"';
-    con.connect((err) => {
-        if (err) throw err
-        con.query(query, (err, result) => {
-            if (err) throw err;
-            console.log(result == '');
-            if (result == undefined || result == '') {
-                console.error('User not found');
-            } else {
-                let FirstName = result[0].firstName;
-                let LastName = result[0].lastName;
-                let newContent = `${FirstName} ${LastName}, ${content}`;
-                sendMail(email, newContent, name)
-                //less secure option disabled by gmail
-            }
+    const [rows, fields] = await con.execute('SELECT * FROM `users` WHERE `email`=?', [email])
+    return rows
+}
 
-        })
-    })
+function appendAndSend(userData, newsletterContent, newsletterName) {
+    if (userData == '') return
+    let { firstName, lastName, email, age } = userData[0];
+    let newContent = `${firstName} ${lastName}, ${newsletterContent}`;
+    sendMail(email, newContent, newsletterName)
 }
 
 function sendMail(email, content, name) {
     let transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: "smtp.mailtrap.",
+        port: 2525,
         auth: {
-            user: process.env.EMAIL,
+            user: process.env.USER,
             pass: process.env.PASS
         }
     })
+    // transporter.verify(function (error, success) {
+    //     if (error) {
+    //         console.log(error);
+    //     } else {
+    //         console.log('Server is ready to take our messages');
+    //     }
+    // });
 
     let options = {
         from: process.env.EMAIL,
@@ -74,8 +74,24 @@ function sendMail(email, content, name) {
         subject: name,
         text: content
     }
-    transporter.sendMail(options, (err, result) => {
-        if (err) throw err
+    transporter.sendMail(options, async (err, result) => {
+        if (err) {
+            await addToSendQueue(options, email, content, name)
+            throw err
+        }
         console.log("mail send", result);
     })
+}
+
+async function addToSendQueue(options, email, newContent, newsletterName) {
+    let con = await sql.createConnection({
+        host: "localhost",
+        database: "testdb",
+        user: 'root',
+        password: ''
+    })
+    await con.execute("CREATE TABLE IF NOT EXISTS queue (id INT AUTO_INCREMENT,email VARCHAR(30) NOT NULL,content VARCHAR(225) NOT NULL,letterName VARCHAR(30),options VARCHAR(225),PRIMARY KEY(id))")
+    await con.execute("INSERT INTO `queue`(`email`, `content`, `letterName`,`options`) VALUES (?,?,?,?)", [email, newContent, newsletterName, JSON.stringify(options)])
+    await con.end()
+    console.log('added to queue');
 }
